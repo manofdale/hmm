@@ -1,11 +1,11 @@
 
 
-def viterbi(hmm,obs):
-    """ recover a sequence of hidden states from a sequence of observed states
+def viterbi(hmm,observed):
+    """ recover a sequence of hidden states from a sequence of observations
 
-    :param hmm:
-    :param obs:
-    :return:
+    :param hmm: container for initial probabilities, transition matrix, emission matrix, observation and state space,
+    :param observed: a sequence of observations
+    :return: the most likely sequence of states
     """
 
     """
