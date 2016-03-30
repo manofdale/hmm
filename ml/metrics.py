@@ -15,6 +15,11 @@ def evaluate_prediction(y_true, y_pred):
 
 
 def tp_tn_fp_fn(cm):
+    """ get true positive, true negative, false positive and false negative from the confusion matrix
+
+    :param cm: confusion matrix
+    :return: tp, tn, fp, fn
+    """
     nb_class = len(cm)
     stats = np.zeros((4, nb_class))
     hor_sum = np.sum(cm, axis=1)

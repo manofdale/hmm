@@ -1,0 +1,49 @@
+{
+ "cells": [
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "class GraphicalModel(object):\n",
+    "    \"\"\" Abstract base class to build graphical models\n",
+    "\n",
+    "        # Attributes:\n",
+    "\n",
+    "        # Methods:\n",
+    "        get_parents\n",
+    "        ge\n",
+    "    \"\"\"\n",
+    "    def __init__(self):\n",
+    "        pass\n",
+    "\n",
+    "\n",
+    "class DynamicBayesian(GraphicalModel):\n",
+    "    def __init__(self):\n",
+    "        super(DynamicBayesian, self).__init__()\n",
+    "\n",
+    "\n",
+    "# class KalmanFilter(DynamicBayesian):\n",
+    "#    pass\n",
+    "\n",
+    "\n",
+    "class HiddenMarkov(DynamicBayesian):\n",
+    "    def __init__(self, initial_prob=None, transition_prob=None, emission_prop=None, end_state='E', log_prob=True, **kwargs):\n",
+    "        super(HiddenMarkov, self).__init__(**kwargs)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    ""
+   ]
+  }
+ ],
+ "metadata": {},
+ "nbformat": 4,
+ "nbformat_minor": 0
+}
