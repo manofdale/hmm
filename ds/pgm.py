@@ -9,6 +9,13 @@ class EmitterNode(Node):
         super(EmitterNode, self).__init__(state_id, parents, children, **kwargs)
         self.emission_ps = {}  # will be a dictionary [obs] = emission_prob
 
+    def emit(self):
+        assert (len(self.emission_ps.items()) > 1)
+        emissions = self.emission_ps.keys()
+        p_ranges = [self.emission_ps[s] for s in emissions]
+        ix = random_pick(p_ranges)
+        return emissions[ix]
+
 
 class HiddenMarkov(object):
     def __init__(self, config_path, transitions=None, emissions=None, start_id='B', end_id='E',
@@ -60,8 +67,8 @@ class HiddenMarkov(object):
     def is_valid(self):
         valid = (self.emitters is not None and len(self.emitters) > 0 and self.starting_ps is not None and len(
             self.starting_ps) > 0)
-        print(self.emitters is not None, len(self.emitters) > 0, self.starting_ps is not None, len(
-            self.starting_ps) > 0)
+        #print(self.emitters is not None, len(self.emitters) > 0, self.starting_ps is not None, len(
+        #    self.starting_ps) > 0)
         # valid = valid and other_checks()  # Can do more checks here
         return valid
 
@@ -70,11 +77,11 @@ class HiddenMarkov(object):
         end_id = self.end_id  # end node
         for state in self.emitters:
             if end_id not in state.children or state.children[end_id][0] < stop_p:  # need another node to end
-                needy_nodes.add(state)
-        for state in needy_nodes:
+                needy_nodes.add(state.id)
+        for state_id in needy_nodes:
             all_needy = True
-            for p, child in state.children.items():  # if all kids are needy, then possible infinite loop
-                if child not in needy_nodes:
+            for p, child in self.graph.nodes[state_id].children.values():  # if all kids are needy, then possible infinite loop
+                if child.id not in needy_nodes:
                     all_needy = False
                     break
             if all_needy:
@@ -82,8 +89,6 @@ class HiddenMarkov(object):
         return False
 
     def simulate(self, limit):
-        print("to be implemented")
-        return
         if not self.is_valid():
             logging.error("The model configuration is not valid, can not simulate..")
         if self.might_not_stop():
@@ -96,11 +101,18 @@ class HiddenMarkov(object):
 
         states = self.emitters
         p_ranges = [self.starting_ps[s.id] for s in states]
+
         ix = random_pick(p_ranges)
+        print(ix)
         node = states[ix]
         emitted_seq = []
         for i in range(limit):
-            if node is None:
-                return emitted_seq
-                # p_ranges=[p for p,c in node.children.values()]
-                # TODO finish this later
+            if node.id != self.end_id:
+                e = node.emit()
+                print(i, node.id, e)
+                emitted_seq.append(e)
+            candidates = node.children.keys()
+            p_ranges = [w for [w, _] in node.children[candidates]]
+            ix = random_pick(p_ranges)
+            node = candidates[ix]
+        return emitted_seq

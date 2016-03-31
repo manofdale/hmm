@@ -42,7 +42,7 @@ def random_pick(p_list):
     :return: randomly picked index given the probabilities in p_list
     """
     p_ranges = np.cumsum(p_list)
-    return bisect.bisect(p_ranges, np.random.uniform())
+    return min(bisect.bisect(p_ranges, np.random.uniform()),len(p_list)-1)
 
 
 def try_to_log(p, convert_zero=0.0000000000001):
