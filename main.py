@@ -19,7 +19,7 @@ if __name__ == '__main__':
                 hidden_sequence.append(splitted[1])
                 observed_sequence.append(splitted[2])
     hmm = HiddenMarkov("data/hmm.cfg")  # load the model from file
-    # hmm.simulate(100) # in progress
+    # hmm.simulate(1000)  # can use the model to emit events
     probability, hidden_pred = decoders.viterbi(observed_sequence, hmm)  # get the most likely hidden sequence
     print("viterbi algorithm has found the following hidden sequence with the probability p = %f" % exp(probability))
     print(hidden_pred)

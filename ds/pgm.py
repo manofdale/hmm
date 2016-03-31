@@ -1,6 +1,7 @@
 from graph import Node, DirectedGraph
 from ml.util import random_pick, try_to_log
 from ds.cfg_reader import load_config
+from math import exp
 import logging
 
 
@@ -12,7 +13,7 @@ class EmitterNode(Node):
     def emit(self):
         assert (len(self.emission_ps.items()) > 1)
         emissions = self.emission_ps.keys()
-        p_ranges = [self.emission_ps[s] for s in emissions]
+        p_ranges = [exp(self.emission_ps[s]) for s in emissions]
         ix = random_pick(p_ranges)
         return emissions[ix]
 
@@ -100,7 +101,7 @@ class HiddenMarkov(object):
                 print("Alright, let's burn some cpu!")
 
         states = self.emitters
-        p_ranges = [self.starting_ps[s.id] for s in states]
+        p_ranges = [exp(self.starting_ps[s.id]) for s in states]
 
         ix = random_pick(p_ranges)
         print(ix)
@@ -111,8 +112,10 @@ class HiddenMarkov(object):
                 e = node.emit()
                 print(i, node.id, e)
                 emitted_seq.append(e)
-            candidates = node.children.keys()
-            p_ranges = [w for [w, _] in node.children[candidates]]
+            else:
+                break
+            candidates = node.children.values()
+            p_ranges = [exp(w) for w, _ in candidates]
             ix = random_pick(p_ranges)
-            node = candidates[ix]
+            node = candidates[ix][1]
         return emitted_seq
