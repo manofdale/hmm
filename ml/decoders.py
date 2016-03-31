@@ -1,6 +1,8 @@
 import numpy as np
 import operator
 import copy
+from ds.graph import SinglyLinkedNode
+from math import log
 
 
 def viterbi(observed_seq, hmm):
@@ -10,41 +12,45 @@ def viterbi(observed_seq, hmm):
     :param observed_seq: a sequence of observations
     :return: the probability alongside with the most likely sequence of states
     """
+
     if hmm is None or observed_seq is None or not hmm.is_valid() or len(observed_seq) == 0:
-        return None
+        print(hmm is None, observed_seq is None, not hmm.is_valid(), len(observed_seq) == 0)
+        return None, None
 
-    class TrellisNode:  # to keep only the survivor paths in the trellis diagram
-        def __init__(self, state_id, node_parent):
-            self.state_id = state_id
-            self.parent = node_parent  # keep a reference to parent
-
-    hidden_seq = np.zeros(len(observed_seq))
+    hidden_seq = [""]*len(observed_seq)
     # a list of states except the beginning and ending states
     states = hmm.emitters
+    log_0 = log(hmm.convert_zero)
     # state window on the trellis diagram, width = 1, height = # states, slide at each observation step
-    state_window = [TrellisNode(s.id, None) for s in states]  # parent: None
+    state_window = [SinglyLinkedNode(s.id) for s in states]  # parent= None
     # initialize scores
-    scores = [hmm.starting_p[s.id] + s.emission_p[observed_seq[0]] for s in states]  # updated at each observation step
+    scores = [hmm.starting_ps[s.id] + s.emission_ps[observed_seq[0]] for s in states]  # updated at each obs step
     for obs in observed_seq[1:]:  # construct survivor paths for each state
         prev_states = state_window
         prev_scores = copy.deepcopy(scores)  # scores = posterior log probabilities
-        state_window = [TrellisNode(s.id, None) for s in states]  # window for the next step
+        state_window = [SinglyLinkedNode(s.id) for s in states]  # window for the next step, parents are None
         for i, s in enumerate(states):
-            parent_score = 0
+            parent_score = -np.inf
+            parent_i = -1
             for j, sc in enumerate(prev_scores):  # pick the best parent + transition score
+                #print(prev_scores)
                 # default transition_p = 0, parent = None
-                transition_p, parent = s.parents.get(prev_states[j].id, (0, None))
+                transition_p, _ = s.parents.get(prev_states[j].id, [-np.inf, None])
                 score = sc + transition_p
                 if parent_score < score:  # if there are two parents with the same score, choose the first one
                     parent_score = score
-                    state_window[i].parent = prev_states[j]
-            scores[i] += s.emission_p[obs] + parent_score  # update scores
+                    parent_i = j
+            if parent_i > -1:
+                state_window[i].link = prev_states[parent_i]
+            else:  # no parent was found
+                raise Exception("Something is wrong! No surviving parent was found for state %s" % str(s.id))
+            scores[i] = s.emission_ps.get(obs, log_0) + parent_score  # update scores, if emission p==0, won't survive
     # end of observations, scores are calculated for len(states) surviving paths
     # now pick the best score and backtrack the best survived path
+    print(scores)
     index, max_score = max(enumerate(scores), key=operator.itemgetter(1))
     node = state_window[index]
     for i in range(len(hidden_seq) - 1, -1, -1):
         hidden_seq[i] = node.id
-        node = node.parent
-
-    return score, hidden_seq
+        node = node.link
+    return max_score, hidden_seq

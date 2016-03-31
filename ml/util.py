@@ -1,3 +1,5 @@
+import bisect
+from math import log
 from sklearn.metrics import confusion_matrix, precision_recall_fscore_support
 import numpy as np
 
@@ -31,3 +33,30 @@ def tp_tn_fp_fn(cm):
         stats[2, i] = ver_sum[i] - cm[i][i]  # fp
         stats[3, i] = hor_sum[i] - cm[i][i]  # fn
     return stats
+
+
+def random_pick(p_list):
+    """ select an index according to the probabilities in p_list
+
+    :param p_list: a list of probabilities
+    :return: randomly picked index given the probabilities in p_list
+    """
+    p_ranges = np.cumsum(p_list)
+    return bisect.bisect(p_ranges, np.random.uniform())
+
+
+def try_to_log(p, convert_zero=0.0000000000001):
+    converted = True
+    if isinstance(p, basestring):
+        try:
+            p = float(p)
+        except:
+            converted = False
+    try:
+        if p == 0:
+            p = convert_zero
+            # converted = False if convert_zero=0
+        p = log(p)
+    except:
+        converted = False
+    return p, converted
